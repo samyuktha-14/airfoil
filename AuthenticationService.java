@@ -1,66 +1,40 @@
-import java.io.*;
-import java.util.*;
-
 public class AuthenticationService {
-    private static final String USER_DB = "users.csv";
-    private TreeMap<String, User> users = new TreeMap<>();
+    private DatabaseService dbService;
 
     public AuthenticationService() {
-        loadUsers();
+        dbService = new DatabaseService(); // Ensure connection is initialized in DatabaseService
     }
 
-    private void loadUsers() {
-        users.clear();
-        File file = new File(USER_DB);
-        if (!file.exists()) return;
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length == 3) {
-                    String username = parts[0];
-                    String password = parts[1];
-                    String email = parts[2];
-                    users.put(username, new User(username, password, email));
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error loading users: " + e.getMessage());
-        }
-    }
-
-    private void saveUsers() {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(USER_DB))) {
-            for (User user : users.values()) {
-                pw.println(user.getUsername() + "," + user.getPassword() + "," + user.getEmail());
-            }
-        } catch (IOException e) {
-            System.out.println("Error saving users: " + e.getMessage());
-        }
-    }
-
+    // ----- Sign up -----
     public boolean signUp(String username, String password, String email) {
-        if (users.containsKey(username)) {
-            return false; // Username already exists
+        // Check if username already exists
+        if (dbService.userExists(username)) {
+            System.out.println("Username already exists!");
+            return false;
         }
-        User user = new User(username, password, email);
-        users.put(username, user);
-        saveUsers();
-        return true;
+
+        // Check if email already exists
+        if (dbService.emailExists(email)) {
+            System.out.println("Email already registered!");
+            return false;
+        }
+
+        // Add user to database
+        return dbService.addUser(username, password, email);
     }
 
+    // ----- Login -----
     public User login(String username, String password) {
-        User user = users.get(username);
-        if (user != null && user.getPassword().equals(password)) {
-            return user;
-        }
-        return null;
+        // Authenticate user and get user information
+        return dbService.authenticateUser(username, password);
     }
 
+    // Check if username exists
     public boolean userExists(String username) {
-        return users.containsKey(username);
+        return dbService.userExists(username);
     }
 
+    // ----- Password validation -----
     public String validatePassword(String password) {
         if (password == null || password.length() < 8) {
             return "Password must be at least 8 characters.";
@@ -80,6 +54,7 @@ public class AuthenticationService {
         return null;
     }
 
+    // ----- Full signup validation -----
     public String validateSignup(String username, String password, String email) {
         if (username == null || username.trim().isEmpty()) {
             return "Username cannot be empty.";
@@ -90,22 +65,25 @@ public class AuthenticationService {
         if (!username.matches("^[a-zA-Z0-9_]{4,}$")) {
             return "Username must be at least 4 characters and contain only letters, digits, or underscores.";
         }
-        if (users.containsKey(username)) {
+        if (dbService.userExists(username)) {
             return "Username already exists.";
         }
+
         // Password validation
         String passwordError = validatePassword(password);
         if (passwordError != null) {
             return passwordError;
         }
+
+        // Email validation
         if (email == null || !email.contains("@") || !email.contains(".")) {
             return "Invalid email address.";
         }
-        for (User user : users.values()) {
-            if (user.getEmail().equalsIgnoreCase(email)) {
-                return "Email already registered.";
-            }
+        if (dbService.emailExists(email)) {
+            return "Email already registered.";
         }
-        return null;
+
+        return null; // All validations passed
     }
 }
+

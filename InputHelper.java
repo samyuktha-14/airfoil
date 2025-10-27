@@ -7,10 +7,20 @@ public class InputHelper {
     public static int getIntInput(Scanner scanner) {
         while (true) {
             try {
+                if (!scanner.hasNextLine()) {
+                    throw new RuntimeException("No more input available");
+                }
                 String input = scanner.nextLine().trim();
+                if (input.isEmpty()) {
+                    System.out.print("✗ Input cannot be empty. Please enter a number: ");
+                    continue;
+                }
                 return Integer.parseInt(input);
             } catch (NumberFormatException e) {
                 System.out.print("✗ Invalid input. Please enter a valid number: ");
+                if (scanner.hasNextLine()) {
+                    scanner.nextLine(); // Clear the invalid input
+                }
             }
         }
     }
@@ -19,10 +29,20 @@ public class InputHelper {
     public static double getDoubleInput(Scanner scanner) {
         while (true) {
             try {
+                if (!scanner.hasNextLine()) {
+                    throw new RuntimeException("No more input available");
+                }
                 String input = scanner.nextLine().trim();
+                if (input.isEmpty()) {
+                    System.out.print("✗ Input cannot be empty. Please enter a number: ");
+                    continue;
+                }
                 return Double.parseDouble(input);
             } catch (NumberFormatException e) {
                 System.out.print("✗ Invalid input. Please enter a valid number: ");
+                if (scanner.hasNextLine()) {
+                    scanner.nextLine(); // Clear the invalid input
+                }
             }
         }
     }

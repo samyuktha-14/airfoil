@@ -48,4 +48,9 @@ public class FlightParameters {
         return String.format("Speed: %.1f m/s, Alt: %.0f m, Wing Area: %.2f m², Lift: %.0f N, Re: %.2e",
                            speed, altitude, wingArea, requiredLift, calculateReynoldsNumber());
     }
+    public String toDetailedString() {
+        return String.format("Speed: %-6.1f | Altitude: %-6.1f | Wing Area: %-6.2f | Lift: %-8.0f | Reynolds: %-8.1fM | Date: %s",
+            speed, altitude, wingArea, requiredLift, calculateReynoldsNumber() / 1000000.0,
+            java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, HH:mm")));
+    }
 }

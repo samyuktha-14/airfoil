@@ -2,10 +2,19 @@ import java.util.*;
 
 
 public class Main {
-    private static Scanner scanner = new Scanner(System.in);
+    private static Scanner scanner;
     private static AuthenticationService authService = new AuthenticationService();
     private static AirfoilService airfoilService = new AirfoilService();
     private static User currentUser = null;
+    
+    static {
+        scanner = new Scanner(System.in);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (scanner != null) {
+                scanner.close();
+            }
+        }));
+    }
 
     public static void main(String[] args) {
         displayWelcomeBanner();
@@ -115,12 +124,15 @@ public class Main {
         System.out.print("Enter password: ");
         String password = scanner.nextLine().trim();
 
-        currentUser = authService.login(username, password);
-        if (currentUser != null) {
-            System.out.println("✓ Login successful! Welcome, " + currentUser.getUsername());
+        User user = authService.login(username, password);
+        if (user != null) {
+            currentUser = user;  // Set the current user when login is successful
+            clearConsole();
+            System.out.println(" Login successful! Welcome, " + username);
         } else {
             System.out.println("✗ Invalid credentials!");
         }
+
     }
     public static void clearConsole() {
         try {
@@ -164,7 +176,7 @@ public class Main {
                 break;
             case 4:
                 clearConsole();
-                MenuHandler.viewSearchHistory(currentUser);
+                MenuHandler.viewSearchHistory(currentUser, scanner);
                 break;
             case 5:
                 clearConsole();

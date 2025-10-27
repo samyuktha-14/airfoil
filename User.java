@@ -1,49 +1,34 @@
-import java.util.*;
+import java.util.Stack;
 
 public class User {
+    private int id;
     private String username;
-    private String password;
     private String email;
-    private Date registrationDate;
-    private Stack<FlightParameters> searchHistory; 
+    private Stack<FlightParameters> searchHistory;
 
-    
-    public User(String username, String password, String email) {
+    public User(int id, String username, String email) {
+        this.id = id;
         this.username = username;
-        this.password = password;
         this.email = email;
-        this.registrationDate = new Date();
-        this.searchHistory = new Stack<>();
+        this.searchHistory = new Stack<>(); // initialize the stack
     }
 
-    
-    public String getUsername() { 
-        return username; 
-    }
-    
-    public String getPassword() { 
-        return password; 
-    }
-    
-    public String getEmail() { 
-        return email; 
-    }
-    
-    public Date getRegistrationDate() { 
-        return registrationDate; 
-    }
+    public int getId() { return id; }
+    public String getUsername() { return username; }
+    public String getEmail() { return email; }
 
+    // Add a new search to the history
     public void addSearchHistory(FlightParameters params) {
         searchHistory.push(params);
     }
-    
-    
+
+    // Retrieve the search history
     public Stack<FlightParameters> getSearchHistory() {
         return searchHistory;
     }
 
-    @Override
-    public String toString() {
-        return "User: " + username + " (Email: " + email + ")";
+    // Optional: clear all history
+    public void clearSearchHistory() {
+        searchHistory.clear();
     }
 }
