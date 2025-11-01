@@ -419,5 +419,46 @@ public static void addNewAirfoil(Scanner scanner, AirfoilService airfoilService)
         System.out.println("║    • Example: 5 kg drone needs 49 N of lift              ║");
         System.out.println(eduFooter);
     }
-    
+
+    public static String getEducationalInfoText() {
+    return """
+        AIRFOIL FUNDAMENTALS
+        
+        What is an Airfoil?
+        An airfoil is the cross-sectional shape of a wing, blade, or sail that generates lift when moving through air.
+        
+        Key Parameters:
+        
+        1. Lift Coefficient (Cl)
+           - Measures lifting capability
+           - Higher values mean more lift
+           - Typical range: 0.1 to 2.0
+        
+        2. Drag Coefficient (Cd)
+           - Measures resistance to motion
+           - Lower values mean less drag
+           - Typical range: 0.005 to 0.1
+        
+        3. Reynolds Number
+           - Ratio of inertial to viscous forces
+           - Affects flow characteristics
+           - Low: Laminar flow, High: Turbulent flow
+        
+        4. Thickness
+           - Percentage of chord length
+           - Affects structural strength and stall characteristics
+        
+        Common Airfoil Types:
+        - NACA 4-digit: Systematic airfoils (e.g., NACA 2412)
+        - Clark Y: Good all-purpose airfoil
+        - Eppler: High-performance glider airfoils
+        - Wortmann: Laminar flow airfoils
+        
+        Application Guidelines:
+        - Gliders: High lift-to-drag ratio
+        - RC Aircraft: Moderate thickness for strength
+        - High-speed: Thin airfoils with low drag
+        - STOL: High camber for low-speed lift
+        """;
+}
 }

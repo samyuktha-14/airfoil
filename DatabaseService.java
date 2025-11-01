@@ -4,9 +4,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DatabaseService {
     private static final Logger LOGGER = Logger.getLogger(DatabaseService.class.getName());
     private final Connection connection;
+    
+    // Cache for storing authenticated users (username -> User)
+    private final Map<String, User> userCache = new HashMap<>();
 
     public DatabaseService() {
         Connection conn = null;
@@ -59,42 +65,71 @@ public class DatabaseService {
 
     // ----- User Authentication Methods -----
     public User authenticateUser(String username, String password) {
-        if (connection == null) {
-            System.out.println("Debug: Connection is null");
-            return null;
+        // Check cache first
+        if (username != null) {
+            User cachedUser = userCache.get(username.toLowerCase());
+            if (cachedUser != null) {
+                System.out.println("Debug: Found user in cache: " + username);
+                return cachedUser;
+            }
         }
-
-        // Normalize input
-        String inputUser = (username == null) ? "" : username.trim();
+        
+        // Input validation and normalization
+        String inputUser = (username == null) ? "" : username.trim().toLowerCase();
         String inputPassword = (password == null) ? "" : password;
 
-        String sql = "SELECT id, username, email, password FROM users WHERE lower(username) = lower(?)";
+        // SQL query using parameterized query for security
+        String sql = "SELECT id, username, email, password FROM users WHERE lower(username) = ?";
+        
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, inputUser);
+            
+            // Debug log before executing query
             System.out.println("Debug: Checking credentials for user (normalized): '" + inputUser + "'");
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                String storedPassword = rs.getString("password");
-                // debug lengths only (do not print passwords)
-                System.out.println("Debug: storedPassword.length=" + (storedPassword == null ? 0 : storedPassword.length()) + ", inputPassword.length=" + inputPassword.length());
-                if (inputPassword.equals(storedPassword)) {
-                    int id = rs.getInt("id");
-                    String email = rs.getString("email");
-                    String storedUsername = rs.getString("username");
-                    System.out.println("Debug: Authentication successful for user: " + storedUsername);
-                    return new User(id, storedUsername, email);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String storedPassword = rs.getString("password");
+                    
+                    // Debug log for password length (without revealing actual passwords)
+                    System.out.println("Debug: storedPassword.length=" + 
+                        (storedPassword == null ? 0 : storedPassword.length()) + 
+                        ", inputPassword.length=" + inputPassword.length());
+                    
+                    // Compare passwords
+                    if (inputPassword.equals(storedPassword)) {
+                        // Authentication successful
+                        int id = rs.getInt("id");
+                        String email = rs.getString("email");
+                        String storedUsername = rs.getString("username");
+                        
+                        // Create user and add to cache
+                        User authenticatedUser = new User(id, storedUsername, email);
+                        userCache.put(storedUsername.toLowerCase(), authenticatedUser);
+                        
+                        System.out.println("Debug: Authentication successful for user: " + storedUsername);
+                        return authenticatedUser;
+                    } else {
+                        System.out.println("Debug: Password mismatch for user: " + inputUser);
+                    }
                 } else {
-                    System.out.println("Debug: Password mismatch for user: " + inputUser);
+                    System.out.println("Debug: User not found: " + inputUser);
                 }
-            } else {
-                System.out.println("Debug: User not found: " + inputUser);
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error during authentication", e);
         }
+        
         return null;
     }
 
+    // Clear user from cache (call this when user data changes)
+    public void clearUserFromCache(String username) {
+        if (username != null) {
+            userCache.remove(username.toLowerCase());
+        }
+    }
+    
     // ----- User Management Methods -----
     public boolean addUser(String username, String password, String email) {
         if (connection == null) {
